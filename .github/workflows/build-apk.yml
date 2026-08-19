@@ -24,6 +24,9 @@ jobs:
         with:
           channel: 'stable'
 
+      - name: Add missing platform files (android)
+        run: flutter create . --platforms=android
+
       - name: Install dependencies
         run: flutter pub get
 
