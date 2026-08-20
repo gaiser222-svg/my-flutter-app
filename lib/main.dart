@@ -19,13 +19,10 @@ class BankakApp extends StatelessWidget {
         fontFamily: 'Roboto',
       ),
       home: const TransferScreen(),
-      locale: const Locale('ar'),
-      builder: (context, child) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: child ?? const SizedBox.shrink(),
-        );
-      },
+      locale: const Locale('ar', 'SA'),
+      supportedLocales: const [
+        Locale('ar', 'SA'),
+      ],
     );
   }
 }
