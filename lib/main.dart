@@ -19,10 +19,11 @@ class BankakApp extends StatelessWidget {
         fontFamily: 'Roboto',
       ),
       home: const TransferScreen(),
+      locale: const Locale('ar'),
       builder: (context, child) {
         return Directionality(
           textDirection: TextDirection.rtl,
-          child: child!,
+          child: child ?? const SizedBox.shrink(),
         );
       },
     );
@@ -59,8 +60,6 @@ class _TransferScreenState extends State<TransferScreen> {
   final TextEditingController accountController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
 
-  TransactionData? lastTransaction;
-
   String generateOperationNumber() {
     final random = Random();
     return (100000000000 + random.nextInt(900000000000)).toString();
@@ -83,21 +82,19 @@ class _TransferScreenState extends State<TransferScreen> {
       return;
     }
 
-    setState(() {
-      lastTransaction = TransactionData(
-        opNumber: generateOperationNumber(),
-        dateTime: getCurrentDateTime(),
-        name: name,
-        amount: double.parse(amount).toStringAsFixed(2),
-        fromAccount: '1003 0815 8561 0001',
-        toAccount: account,
-      );
-    });
+    final transaction = TransactionData(
+      opNumber: generateOperationNumber(),
+      dateTime: getCurrentDateTime(),
+      name: name,
+      amount: double.tryParse(amount)?.toStringAsFixed(2) ?? amount,
+      fromAccount: '1003 0815 8561 0001',
+      toAccount: account,
+    );
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SuccessScreen(transaction: lastTransaction!),
+        builder: (context) => SuccessScreen(transaction: transaction),
       ),
     );
   }
@@ -108,7 +105,6 @@ class _TransferScreenState extends State<TransferScreen> {
       backgroundColor: const Color(0xFFF5F5F5),
       body: Column(
         children: [
-          // Header الأحمر
           Container(
             color: const Color(0xFFE31C23),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -116,8 +112,8 @@ class _TransferScreenState extends State<TransferScreen> {
               bottom: false,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
+                children: const [
+                  Text(
                     'بنكك bankak',
                     style: TextStyle(
                       color: Colors.white,
@@ -125,20 +121,18 @@ class _TransferScreenState extends State<TransferScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const Icon(Icons.menu, color: Colors.white, size: 28),
+                  Icon(Icons.menu, color: Colors.white, size: 28),
                 ],
               ),
             ),
           ),
-
-          // شريط العنوان
           Container(
             color: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                Expanded(
-                  child: const Text(
+                const Expanded(
+                  child: Text(
                     'تحويل لحسابات بنك\nالخرطوم',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
@@ -151,18 +145,15 @@ class _TransferScreenState extends State<TransferScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   ),
                   child: const Text(
                     'رجوع',
-                    style: TextStyle(color: Color(0xFFE31C23), fontSize: 14),
+                    style: TextStyle(color: Color(0xFFE31C23)),
                   ),
                 ),
               ],
             ),
           ),
-
-          // بانر أحمر
           Container(
             width: double.infinity,
             color: const Color(0xFFE31C23),
@@ -177,10 +168,8 @@ class _TransferScreenState extends State<TransferScreen> {
               ),
             ),
           ),
-
-          // نموذج الإدخال
           Expanded(
-            child: Padding(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
@@ -193,7 +182,6 @@ class _TransferScreenState extends State<TransferScreen> {
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.grey),
                       ),
                       contentPadding: const EdgeInsets.all(16),
                     ),
@@ -209,7 +197,6 @@ class _TransferScreenState extends State<TransferScreen> {
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.grey),
                       ),
                       contentPadding: const EdgeInsets.all(16),
                     ),
@@ -225,19 +212,18 @@ class _TransferScreenState extends State<TransferScreen> {
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.grey),
                       ),
                       contentPadding: const EdgeInsets.all(16),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 30),
                   SizedBox(
                     width: double.infinity,
+                    height: 50,
                     child: ElevatedButton(
                       onPressed: submitTransfer,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFE31C23),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -258,7 +244,6 @@ class _TransferScreenState extends State<TransferScreen> {
   }
 }
 
-// الشاشة الخضراء (النجاح)
 class SuccessScreen extends StatelessWidget {
   final TransactionData transaction;
 
@@ -268,6 +253,7 @@ class SuccessScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -278,24 +264,32 @@ class SuccessScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              const SizedBox(height: 60),
+              const SizedBox(height: 80),
               Container(
-                width: 100,
-                height: 100,
+                width: 110,
+                height: 110,
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.check, color: Color(0xFF4CAF50), size: 60),
+                child: const Icon(
+                  Icons.check,
+                  color: Color(0xFF4CAF50),
+                  size: 70,
+                ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 25),
               const Text(
                 'تحويلات',
-                style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const Spacer(),
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.only(bottom: 50),
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.pushReplacement(
@@ -308,15 +302,17 @@ class SuccessScreen extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: const Color(0xFF2E7D32),
-                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('موافق', style: TextStyle(fontSize: 18)),
+                  child: const Text(
+                    'موافق',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
-              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -325,7 +321,6 @@ class SuccessScreen extends StatelessWidget {
   }
 }
 
-// الشاشة الثالثة (القائمة)
 class MenuScreen extends StatelessWidget {
   final TransactionData transaction;
 
@@ -347,7 +342,11 @@ class MenuScreen extends StatelessWidget {
                 children: const [
                   Text(
                     'بنكك bankak',
-                    style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Icon(Icons.menu, color: Colors.white, size: 28),
                 ],
@@ -370,51 +369,95 @@ class MenuScreen extends StatelessWidget {
                   onPressed: () => Navigator.pop(context),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFFE31C23)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                   ),
-                  child: const Text('رجوع', style: TextStyle(color: Color(0xFFE31C23))),
+                  child: const Text(
+                    'رجوع',
+                    style: TextStyle(color: Color(0xFFE31C23)),
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 20),
-          _buildMenuItem(context, 'تحويل لحسابات بنك الخرطوم', Icons.account_balance, () {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const TransferScreen()));
-          }),
-          _buildMenuItem(context, 'الدفع عبر الموبايل', Icons.phone_android, null),
-          _buildMenuItem(context, 'تحويل لبنك آخر (باستخدام رقم البطاقة)', Icons.credit_card, null),
-          const SizedBox(height: 30),
-          _buildMenuItem(context, 'المعاملات السابقة', Icons.list_alt, () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => DetailsScreen(transaction: transaction),
-              ),
-            );
-          }, isHighlighted: true),
+          _menuItem(
+            context,
+            title: 'تحويل لحسابات بنك الخرطوم',
+            icon: Icons.account_balance,
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const TransferScreen()),
+              );
+            },
+          ),
+          _menuItem(
+            context,
+            title: 'الدفع عبر الموبايل',
+            icon: Icons.phone_android,
+            onTap: null,
+          ),
+          _menuItem(
+            context,
+            title: 'تحويل لبنك آخر (باستخدام رقم البطاقة)',
+            icon: Icons.credit_card,
+            onTap: null,
+          ),
+          const SizedBox(height: 20),
+          _menuItem(
+            context,
+            title: 'المعاملات السابقة',
+            icon: Icons.list_alt,
+            isHighlighted: true,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetailsScreen(transaction: transaction),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, String title, IconData icon, VoidCallback? onTap, {bool isHighlighted = false}) {
+  Widget _menuItem(
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required VoidCallback? onTap,
+    bool isHighlighted = false,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         decoration: BoxDecoration(
           color: isHighlighted ? const Color(0xFFE8F5E9) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 6, offset: const Offset(0, 2)),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.07),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
           ],
         ),
         child: Row(
           children: [
             Icon(icon, color: const Color(0xFFE31C23), size: 26),
             const SizedBox(width: 16),
-            Expanded(child: Text(title, style: const TextStyle(fontSize: 16))),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
             const Icon(Icons.arrow_back_ios, size: 16, color: Colors.grey),
           ],
         ),
@@ -423,7 +466,6 @@ class MenuScreen extends StatelessWidget {
   }
 }
 
-// الشاشة الرابعة (التفاصيل)
 class DetailsScreen extends StatelessWidget {
   final TransactionData transaction;
 
@@ -445,7 +487,11 @@ class DetailsScreen extends StatelessWidget {
                 children: const [
                   Text(
                     'بنكك bankak',
-                    style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Icon(Icons.menu, color: Colors.white, size: 28),
                 ],
@@ -468,9 +514,14 @@ class DetailsScreen extends StatelessWidget {
                   onPressed: () => Navigator.pop(context),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFFE31C23)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                   ),
-                  child: const Text('رجوع', style: TextStyle(color: Color(0xFFE31C23))),
+                  child: const Text(
+                    'رجوع',
+                    style: TextStyle(color: Color(0xFFE31C23)),
+                  ),
                 ),
               ],
             ),
@@ -479,15 +530,15 @@ class DetailsScreen extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                _buildDetailRow('رقم العملية', transaction.opNumber),
-                _buildDetailRow('التاريخ والوقت', transaction.dateTime),
-                _buildDetailRow('نوع العملية', 'تحويل إلى حساب آخر'),
-                _buildDetailRow('المبلغ', transaction.amount),
-                _buildDetailRow('من', transaction.fromAccount),
-                _buildDetailRow('إلى', transaction.toAccount),
-                _buildDetailRow('الحالة', 'نجاح'),
-                _buildDetailRow('إسم المرسل اليه', transaction.name),
-                _buildDetailRow('التعليق', 'N/A'),
+                _detailRow('رقم العملية', transaction.opNumber),
+                _detailRow('التاريخ والوقت', transaction.dateTime),
+                _detailRow('نوع العملية', 'تحويل إلى حساب آخر'),
+                _detailRow('المبلغ', transaction.amount),
+                _detailRow('من', transaction.fromAccount),
+                _detailRow('إلى', transaction.toAccount),
+                _detailRow('الحالة', 'نجاح'),
+                _detailRow('إسم المرسل اليه', transaction.name),
+                _detailRow('التعليق', 'N/A'),
               ],
             ),
           ),
@@ -496,17 +547,26 @@ class DetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _detailRow(String label, String value) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Color(0xFF555555), fontSize: 15)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+          Text(
+            label,
+            style: const TextStyle(color: Color(0xFF555555), fontSize: 15),
+          ),
+          Flexible(
+            child: Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+              textAlign: TextAlign.left,
+            ),
+          ),
         ],
       ),
     );
